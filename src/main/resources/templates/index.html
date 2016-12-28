@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th ="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <script src="bower_components/vue/dist/vue.min.js"></script>
+    <script src="bower_components/vue-resource/dist/vue-resource.min.js"></script>
+    <style type="text/css">
+        html {
+            height:100%;
+            margin: 0px;
+        }
+        body {
+            height:100%;
+            margin: 0px;
+        }
+        #submit1 {
+            font-size: large;
+            text-decoration: underline;
+            alignment: center;
+        }
+        div#login {
+            background-color:white;
+            width: 30%;
+            height: 40%;
+            position: fixed;
+            left:35%;
+            top : 20%;
+        }
+        div#register {
+            background-color:white;
+            width: 30%;
+            height: 40%;
+            position: fixed;
+            left:35%;
+            top : 20%;
+        }
+    </style>
+</head>
+<body>
+<div id="app" style="width:100%; height:100%">
+    <div style="float:left; width: 100%;">
+        <div style="float:right; align:right;position: relative;right: 10%">
+            您好，欢迎来到射日网络：
+            <a href="#login" onclick="gotoLogin()">马上登录</a>
+            或
+            <a href="#register" onclick="gotoRegister()">注册</a>
+        </div>
+    </div>
+    <div style="float:left; width:50%; height:80%; background-color: #91ff49">
+        <p>width: 50%, height: 80%</p>
+        <img src="img/leida_bk2.png"/>
+    </div>
+    <div style="float:right; width:50%; height: 30%; background-color: purple">
+        <h1>射日游戏</h1>
+    </div>
+    <div style="float:right; width:25%; height: 50%; background-color: green">
+        <p>width: 25%, height: 50%</p>
+    </div>
+    <div style="float:left; width:25%; height:50%; background-color: lightgreen">
+        <p>width: 25%, height: 50%</p>
+    </div>
+    <div style="float:left;width:50%; height:20%; background-color: hotpink">
+        <p>width: 50%, height: 20%</p>
+        <h1 v-if="ok" v-model="greeting">Hello, {{greeting}}</h1>
+    </div>
+    <div style="float:left; width:50%; height: 20%; background-color: #8a6d3b">
+        <ol>
+            <li v-for="t in todos">
+                {{t}}
+            </li>
+        </ol>
+        <input class="btn-danger" type="button" onclick="myclick()" value="click me"/>
+    </div>
+    <div v-if="login" id="login">
+        <div style="position: relative; left: 20%; width: 60%; height: 50%; top: 30%">
+            <form th:action="@{/login}" method="post">
+                <div align="center"><label>用户名：<input type="text" name="username" v-model="username"/></label></div>
+                <div align="center"><label>密码：<input type="password" name="password" v-model="password"/></label></div>
+                <div align="center"><input id="user_login" type = "submit" value="登录" onclick="onLogin()"/></div>
+            </form>
+        </div>
+    </div>
+    <div v-if="register" id="register">
+        <div style="position: relative; left: 20%; width: 60%; height: 50%; top: 30%">
+            <form th:action="@{/register}" method="post">
+                <div align="center"><label>用户名：<input type="text" name="username"/></label></div>
+                <div align="center"><label>密码：<input type="password" name="password"/></label></div>
+                <div align="center"><input type = "button" value="注册" onclick="onRegister()"/></div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    //<![CDATA[
+    //var root_url = 'http://localhost:8080';
+    var root_url = "";
+    vm = new Vue({
+        el:"#app",
+        data: {
+            message:'hello vue!',
+            todos : [
+                {username:"java"},
+                {username:"js"},
+                {username:"html"}
+            ],
+            username: "",
+            password: "",
+            greeting: "",
+            login: false,
+            register: false,
+            ok:false,
+        }
+    });
+
+    function myclick() {
+        var temp = vm.$http.get(root_url + '/user/friends?username=Lucy');
+        temp.then(
+                function(res) {
+                    vm.todos.splice(0, vm.todos.length);
+                    var friends;
+                    try {
+                        friends = JSON.parse(res.body.msg);
+                    }
+                    catch (e) {
+                        alert(e);
+                        friends = [];
+                    }
+                    for (var i=0; i<friends.length; i++) {
+                        vm.todos.push({"username":friends[i].username});
+                    }
+                },
+                function(res) {
+                    alert("无法获取数据!");
+                }
+        );
+    }
+
+    function gotoLogin() {
+        vm.login = true;
+        vm.register = false;
+    }
+
+    function gotoRegister() {
+        vm.register = true;
+        vm.login = false;
+    }
+    function onRegister() {
+        var csrfs = document.getElementsByName("_csrf");
+        if(csrfs.length > 0 ) {
+            var csrf = csrfs[0];
+            vm.$http.post( root_url + "/user/register?username=" + vm.username + "&password=" + vm.password + "" +
+                    "&_csrf=" + csrf.value
+            ).then(function(response) {
+                if(response.status == 200) {
+                    vm.greeting = vm.username;
+                    vm.ok = true;
+                }
+            }, function (response) {
+                alert("注册失败!");
+            });
+            vm.register = false;
+        }
+    }
+
+    function onLogin() {
+        var user_login = document.getElementById("user_login");
+        user_login.click();
+        return
+        /*
+        var csrfs = document.getElementsByName("_csrf");
+        if(csrfs.length > 0) {
+            var csrf = csrfs[0];
+            vm.$http.post( root_url + "/login?username=" + vm.username + "&password=" + vm.password + "" +
+                    "&_csrf=" + csrf.value
+            ).then(function(response) {
+                if(response.status == 200) {
+                    vm.greeting = vm.username;
+                    vm.ok = true;
+                    vm.login = false;
+                }
+            }, function (response) {
+                alert("登陆失败!");
+            });
+        }
+        */
+    }
+    //]]>
+</script>
+</body>
+</html>
