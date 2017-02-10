@@ -33,11 +33,12 @@ public class SocialUserDetail {
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
+
     public byte getSex() {
         return sex;
     }
 
-    public void getSex(byte sex) {
+    public void setSex(byte sex) {
         this.sex = sex;
     }
 

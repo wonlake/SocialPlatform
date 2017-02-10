@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -59,6 +61,8 @@ public class UserInfoController {
                 SocialUserDetail socialUserDetail = new SocialUserDetail();
                 socialUserDetail.setUsername(user.username);
                 socialUserDetail.setNickname(user.nickname);
+                socialUserDetail.setSex((byte)0);
+                socialUserDetail.setTel("");
                 Account account = accountMapper.getAccountByUsername(username);
                 socialUserDetail.setUserId(account.id);
                 userCache.set(username, toJson(socialUserDetail));
@@ -68,8 +72,11 @@ public class UserInfoController {
         return null;
     }
 
-    @RequestMapping("/user/get")
-    public ResponseMessage getUser(@RequestParam("username") String username) {
+    @RequestMapping("/user/info")
+    public ResponseMessage getUser() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
+
         ResponseMessage response = new ResponseMessage();
         SocialUserDetail user = getUserDetail(username);
         if( user != null )
@@ -137,7 +144,7 @@ public class UserInfoController {
         }
     }
 
-    @RequestMapping(value = "/user/login", method = RequestMethod.POST)
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseMessage userLogin(@RequestParam("username") String username,
                             @RequestParam("password") String password) {
         ResponseMessage response = new ResponseMessage();
@@ -161,8 +168,9 @@ public class UserInfoController {
 
     @RequestMapping("/user/friends")
     public ResponseMessage userFriends() {
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
+        SecurityContext context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
+
         ResponseMessage response = new ResponseMessage();
         SocialUserDetail userDetail = getUserDetail(username);
         if(userDetail == null ) {
@@ -213,14 +221,16 @@ public class UserInfoController {
     }
 
     @RequestMapping("/user/addFriend")
-    public ResponseMessage addFriend(@RequestParam("username") String username,
-                                     @RequestParam("friendId") long friendId) {
+    public ResponseMessage addFriend( @RequestParam("friendId") long friendId) {
         ResponseMessage response = new ResponseMessage();
         if( friendId < 1) {
             response.setErrorCode(ErrorCode.EC_Error);
             response.setMsg("Invalid Friend ID!");
             return response;
         }
+
+        SecurityContext context = SecurityContextHolder.getContext();
+        String username = context.getAuthentication().getName();
 
         SocialUserDetail userDetail = getUserDetail(username);
         if( userDetail == null ) {

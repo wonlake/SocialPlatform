@@ -74,7 +74,7 @@
         <input class="btn-danger" type="button" onclick="myclick()" value="click me"/>
     </div>
     <div v-if="login" id="login">
-        <div style="position: relative; left: 20%; width: 60%; height: 50%; top: 30%">
+        <div style="position: relative; left: 15%; width: 70%; height: 50%; top: 30%">
             <form th:action="@{/login}" method="post">
                 <div align="center"><label>用户名：<input type="text" name="username" v-model="username"/></label></div>
                 <div align="center"><label>密码：<input type="password" name="password" v-model="password"/></label></div>
@@ -83,10 +83,10 @@
         </div>
     </div>
     <div v-if="register" id="register">
-        <div style="position: relative; left: 20%; width: 60%; height: 50%; top: 30%">
+        <div style="position: relative; left: 15%; width: 70%; height: 50%; top: 30%">
             <form th:action="@{/register}" method="post">
-                <div align="center"><label>用户名：<input type="text" name="username"/></label></div>
-                <div align="center"><label>密码：<input type="password" name="password"/></label></div>
+                <div align="center"><label>用户名：<input type="text" name="username" v-model="username"/></label></div>
+                <div align="center"><label>密码：<input type="password" name="password" v-model="password"/></label></div>
                 <div align="center"><input type = "button" value="注册" onclick="onRegister()"/></div>
             </form>
         </div>
@@ -115,10 +115,13 @@
     });
 
     function myclick() {
-        var temp = vm.$http.get(root_url + '/user/friends?username=Lucy');
+        var temp = vm.$http.get(root_url + '/user/friends?username=meijun');
         temp.then(
                 function(res) {
                     vm.todos.splice(0, vm.todos.length);
+                    if(res.body.msg.length == 0) {
+                        return;
+                    }
                     var friends;
                     try {
                         friends = JSON.parse(res.body.msg);
@@ -150,12 +153,13 @@
         var csrfs = document.getElementsByName("_csrf");
         if(csrfs.length > 0 ) {
             var csrf = csrfs[0];
-            vm.$http.post( root_url + "/user/register?username=" + vm.username + "&password=" + vm.password + "" +
-                    "&_csrf=" + csrf.value
-            ).then(function(response) {
+            var post_data = root_url + "/register?username=" + vm.username + "&password=" + vm.password + "" +
+                    "&_csrf=" + csrf.value;
+            vm.$http.post(post_data).then(function(response) {
                 if(response.status == 200) {
                     vm.greeting = vm.username;
                     vm.ok = true;
+                    onLogin();
                 }
             }, function (response) {
                 alert("注册失败!");
