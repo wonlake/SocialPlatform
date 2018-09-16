@@ -2,6 +2,7 @@ package com.example.config;
 
 import com.example.platform.WebAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
@@ -38,6 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private WebAuthenticationProvider webAuthenticationProvider;
 
     @Autowired
+    @Qualifier("oauth2ClientContext")
     private OAuth2ClientContext oauth2ClientContext;
 
     @Override
